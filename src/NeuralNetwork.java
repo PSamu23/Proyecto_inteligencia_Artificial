@@ -1,4 +1,3 @@
-
 import java.util.Random;
 
 public class NeuralNetwork {
@@ -7,7 +6,7 @@ public class NeuralNetwork {
     private double[] weightsHiddenOutput;
     private double[] hiddenBias;
     private double outputBias;
-    private double learningRate = 0.005;
+    private double learningRate = 0.0005;
 
     public NeuralNetwork(int inputSize, int hiddenSize, int outputSize) {
         this.inputSize = inputSize;
@@ -17,6 +16,7 @@ public class NeuralNetwork {
         weightsInputHidden = new double[hiddenSize][inputSize];
         weightsHiddenOutput = new double[hiddenSize];
         hiddenBias = new double[hiddenSize];
+
         initWeights();
     }
 
@@ -40,6 +40,14 @@ public class NeuralNetwork {
         return x * (1 - x);
     }
 
+    private double relu(double x) {
+        return Math.max(0, x);
+    }
+
+    private double reluDerivative(double x) {
+        return x > 0 ? 1 : 0;
+    }
+
     public double train(double[] input, double target) {
         double[] hiddenOutputs = new double[hiddenSize];
         for (int i = 0; i < hiddenSize; i++) {
@@ -47,7 +55,7 @@ public class NeuralNetwork {
             for (int j = 0; j < inputSize; j++) {
                 sum += input[j] * weightsInputHidden[i][j];
             }
-            hiddenOutputs[i] = sigmoid(sum);
+            hiddenOutputs[i] = relu(sum);
         }
 
         double sumOutput = outputBias;
@@ -55,16 +63,17 @@ public class NeuralNetwork {
             sumOutput += hiddenOutputs[i] * weightsHiddenOutput[i];
         }
         double output = sigmoid(sumOutput);
-        double error = target - output;
 
+        double error = target - output;
         double deltaOutput = error * sigmoidDerivative(output);
+
         for (int i = 0; i < hiddenSize; i++) {
             weightsHiddenOutput[i] += learningRate * deltaOutput * hiddenOutputs[i];
         }
         outputBias += learningRate * deltaOutput;
 
         for (int i = 0; i < hiddenSize; i++) {
-            double deltaHidden = sigmoidDerivative(hiddenOutputs[i]) * deltaOutput * weightsHiddenOutput[i];
+            double deltaHidden = reluDerivative(hiddenOutputs[i]) * deltaOutput * weightsHiddenOutput[i];
             for (int j = 0; j < inputSize; j++) {
                 weightsInputHidden[i][j] += learningRate * deltaHidden * input[j];
             }
@@ -81,13 +90,27 @@ public class NeuralNetwork {
             for (int j = 0; j < inputSize; j++) {
                 sum += input[j] * weightsInputHidden[i][j];
             }
-            hiddenOutputs[i] = sigmoid(sum);
+            hiddenOutputs[i] = relu(sum);
         }
 
         double sumOutput = outputBias;
         for (int i = 0; i < hiddenSize; i++) {
             sumOutput += hiddenOutputs[i] * weightsHiddenOutput[i];
         }
+
         return sigmoid(sumOutput);
+    }
+
+    // 🔍 Método extra: retorna el vector oculto de activaciones (embedding interno)
+    public double[] getHiddenRepresentation(double[] input) {
+        double[] hiddenOutputs = new double[hiddenSize];
+        for (int i = 0; i < hiddenSize; i++) {
+            double sum = hiddenBias[i];
+            for (int j = 0; j < inputSize; j++) {
+                sum += input[j] * weightsInputHidden[i][j];
+            }
+            hiddenOutputs[i] = relu(sum);
+        }
+        return hiddenOutputs;
     }
 }

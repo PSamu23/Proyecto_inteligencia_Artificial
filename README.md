@@ -33,4 +33,3 @@ depues volver a la  raiz y poner el comando de
    java Main
   
 
-# Proyecto_inteligencia_Artificial
